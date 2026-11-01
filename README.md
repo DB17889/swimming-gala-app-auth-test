@@ -1,0 +1,1 @@
+# swimming-gala-app-auth-test
