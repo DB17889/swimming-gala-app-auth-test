@@ -492,11 +492,7 @@ loginForm.addEventListener('submit', async e => {
 
       $('password').value = '';
 
-      setStatus(
-        loginStatus,
-        'Signed in, but the data connection failed. Please try again.',
-        'error'
-      );
+setStatus(loginStatus, connection.textContent || 'Data connection failed. Please try again.', 'error');
     }
   } catch (error) {
     await supabaseClient.auth.signOut();
@@ -574,11 +570,7 @@ applyPermissions();
     $('newPassword').value = '';
     $('confirmPassword').value = '';
 
-    setStatus(
-      loginStatus,
-      'Data connection failed. Please try again.',
-      'error'
-    );
+setStatus(loginStatus, connection.textContent || 'Data connection failed. Please try again.', 'error');
   }
 }
 
