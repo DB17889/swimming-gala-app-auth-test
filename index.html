@@ -328,8 +328,12 @@ async function apiRequest(method, data) {
   const response = await fetch(API, options);
   const result = await response.json();
 
-  if (!response.ok) {
-    throw new Error(result.error || 'Request failed (' + response.status + ')');
+    if (!response.ok) {
+    throw new Error(
+      (result.error || 'Request failed') +
+      ' | HTTP: ' + (result.status || response.status) +
+      ' | Details: ' + (result.details || 'No further details')
+    );
   }
 
   return result;
