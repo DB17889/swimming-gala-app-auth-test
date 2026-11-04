@@ -303,6 +303,7 @@
 let galaData = null, editingEventId = null, editingResultEventId = null, activeGalaId = null, selectedGalaYear = null, historyCourse = "Short Course";
 let currentUserRole = null, currentUserTools = [];
     const $ = id => document.getElementById(id);
+    $('accountsBack').addEventListener('click',()=>showPage('home'));
 const loginSection = $('login'), appSection = $('app'), loginForm = $('loginForm'), loginStatus = $('loginStatus'), connection = $('connection'), retryButton = $('retry');
 const passwordChange = $('passwordChange'), passwordChangeForm = $('passwordChangeForm'), passwordChangeStatus = $('passwordChangeStatus');
     const galaPage=$('galaPage'), eventPage=$('eventPage'), resultsPage=$('resultsPage'), historyPage=$('historyPage'), placeholderPage=$('placeholderPage');
@@ -394,7 +395,23 @@ async function requestData() {
     function formatDate(dateString){if(!dateString)return 'Date not set';const date=new Date(dateString+'T12:00:00');return Number.isNaN(date.getTime())?dateString:date.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}
     function eventLabel(event,gala){return (event.stroke==='IM'?'IM':event.stroke||'Event')+' '+Number(event.distance||0)+'m - '+formatDate(event.date||gala.date);}
     function sortedGalas(){return galaData?[...galaData.galas].sort((a,b)=>(b.date||'').localeCompare(a.date||'')):[];}
-    function showPage(page){$('homeMenu').hidden=true;galaPage.hidden=page!=='galas';eventPage.hidden=page!=='detail';resultsPage.hidden=page!=='results';historyPage.hidden=page!=='history';placeholderPage.hidden=true;$('headerHome').hidden=false;window.scrollTo({top:0,behavior:'smooth'});}
+function showPage(page){
+  $('homeMenu').hidden=true;
+  galaPage.hidden=page!=='galas';
+  eventPage.hidden=page!=='detail';
+  resultsPage.hidden=page!=='results';
+  historyPage.hidden=page!=='history';
+  placeholderPage.hidden=true;
+  $('accountsPage').hidden=page!=='accounts';
+  $('headerHome').hidden=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+    $('accountsBack').addEventListener('click',()=>{
+  $('accountsPage').hidden=true;
+  $('homeMenu').hidden=false;
+  $('headerHome').hidden=true;
+  window.scrollTo({top:0,behavior:'smooth'});
+});
     function showHome(){if(!galaData)return;$('homeMenu').hidden=false;galaPage.hidden=true;eventPage.hidden=true;resultsPage.hidden=true;historyPage.hidden=true;placeholderPage.hidden=true;$('headerHome').hidden=true;closeGalaForm();closeEventForm();setStatus($('galaStatus'),'');setStatus($('eventStatus'),'');setStatus($('resultsStatus'),'');setStatus($('resultFormStatus'),'');window.scrollTo({top:0,behavior:'smooth'});}
 
     function renderGalas(){const list=$('galaList'), years=$('galaYears');list.replaceChildren();years.replaceChildren();const galas=sortedGalas();const yearSet=[...new Set(galas.map(g=>String((g.date||'').slice(0,4))).filter(y=>/^\d{4}$/.test(y)))].sort((a,b)=>b.localeCompare(a));if(!yearSet.length){selectedGalaYear=null;$('galaYearHeading').hidden=true;const empty=document.createElement('p');empty.className='muted';empty.textContent='No galas yet. Select “Add a gala” to create your first one.';list.appendChild(empty);return;}if(!yearSet.includes(String(selectedGalaYear)))selectedGalaYear=yearSet[0];yearSet.forEach(year=>{const button=document.createElement('button');button.type='button';button.className='secondary'+(year===String(selectedGalaYear)?' active':'');button.textContent=year;button.setAttribute('aria-pressed',String(year===String(selectedGalaYear)));button.addEventListener('click',()=>{selectedGalaYear=year;renderGalas();});years.appendChild(button);});$('galaYearHeading').hidden=false;$('galaYearHeading').textContent='Galas in '+selectedGalaYear;galas.filter(g=>String((g.date||'').slice(0,4))===String(selectedGalaYear)).forEach(gala=>{const card=document.createElement('article');card.className='gala-card';const title=document.createElement('h3');title.textContent=gala.name||'Untitled gala';const date=document.createElement('p');date.textContent='📅 '+formatDate(gala.date);const type=document.createElement('p');type.textContent='🏊 '+(gala.type||'Pool type not set');const venue=document.createElement('p');venue.textContent='📍 '+(gala.venue||'Venue not set');const actions=document.createElement('div');actions.className='actions';const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Edit';edit.addEventListener('click',()=>openGalaDetail(gala.id));const remove=document.createElement('button');remove.type='button';remove.className='secondary danger';const hasEvents=Array.isArray(gala.events)&&gala.events.length>0;remove.textContent=hasEvents?'Delete unavailable':'Delete';remove.disabled=hasEvents;remove.title=hasEvents?'A gala with events cannot be deleted. Delete its events first.':'';remove.addEventListener('click',()=>deleteGala(gala.id));actions.append(edit,remove);if(hasEvents){const note=document.createElement('p');note.className='muted';note.textContent='This gala has events and cannot be deleted.';card.append(title,date,type,venue,actions,note);}else card.append(title,date,type,venue,actions);list.appendChild(card);});}
@@ -670,8 +687,7 @@ $('cancelPasswordChange').addEventListener('click', async () => {
 });
 
 
-    retryButton.addEventListener('click',requestData);document.querySelectorAll('[data-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.page;if(page==='Galas'){showPage('galas');renderGalas();}else if(page==='Enter Results'){showPage('results');refreshResultsGalaOptions(true);}else if(page==='Results History'){showPage('history');setHistoryCourse(historyCourse);}}));
-
+retryButton.addEventListener('click',requestData);document.querySelectorAll('[data-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.page;if(page==='Galas'){showPage('galas');renderGalas();}else if(page==='Enter Results'){showPage('results');refreshResultsGalaOptions(true);}else if(page==='Results History'){showPage('history');setHistoryCourse(historyCourse);}else if(page==='Manage Accounts'){showPage('accounts');}}));
 function applyPermissions() {
   document.querySelectorAll('[data-requires-swimming]').forEach(button => {
     button.hidden = !currentUserTools.includes('swimming');
