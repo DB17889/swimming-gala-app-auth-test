@@ -677,6 +677,10 @@ function applyPermissions() {
       currentUserRole === 'View' ||
       !currentUserTools.includes('swimming');
   });
+
+  document.querySelectorAll('[data-requires-admin]').forEach(button => {
+    button.hidden = currentUserRole !== 'Admin';
+  });
 }
 
     $('headerHome').addEventListener('click',showHome);$('addGala').addEventListener('click',openGalaForm);$('cancelGala').addEventListener('click',closeGalaForm);galaForm.addEventListener('submit',saveGalaForm);galaFormWrap.addEventListener('click',e=>{if(e.target===galaFormWrap)closeGalaForm();});
