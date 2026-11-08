@@ -314,7 +314,7 @@ const passwordChange = $('passwordChange'), passwordChangeForm = $('passwordChan
     const EVENT_DISTANCES=[25,50,100,200,400,800];
     function setStatus(el,msg,type=''){el.textContent=msg;el.className='status '+type;}
 
-async function apiRequest(method, data) {
+async function apiRequest(method, data, endpoint = API) {
   const { data: sessionData, error } =
     await supabaseClient.auth.getSession();
 
@@ -339,10 +339,10 @@ async function apiRequest(method, data) {
     options.body = JSON.stringify(data);
   }
 
-  const response = await fetch(API, options);
+  const response = await fetch(endpoint, options);
   const result = await response.json();
 
-    if (!response.ok) {
+  if (!response.ok) {
     throw new Error(
       (result.error || 'Request failed') +
       ' | HTTP: ' + (result.status || response.status) +
