@@ -397,9 +397,116 @@ async function loadAccounts() {
 
   accountsPage.innerHTML = `
     <h2 style="margin-top:0">Manage Accounts</h2>
-    <p>Loading accounts…</p>
-    <button id="accountsBack" class="secondary" type="button">Back to home</button>
+    <p>Create and manage access for swimming and football users.</p>
+
+    <button id="accountsBack" class="secondary" type="button">
+      Back to home
+    </button>
+
+    <div class="panel" style="margin-top:16px">
+      <h3>Create New Account</h3>
+
+      <form id="createAccountForm">
+        <label for="newAccountEmail">Email address</label>
+        <input id="newAccountEmail" type="email" required
+          placeholder="user@example.com">
+
+        <label for="newAccountPassword">Temporary password</label>
+        <input id="newAccountPassword" type="password"
+          minlength="8" required placeholder="At least 8 characters">
+
+        <label for="newAccountRole">Role</label>
+        <select id="newAccountRole" required>
+          <option value="View">View</option>
+          <option value="Manage">Manage</option>
+          <option value="Admin">Admin</option>
+        </select>
+
+        <p>Sports access</p>
+
+        <label>
+          <input type="checkbox" id="newAccountSwimming" checked>
+          Swimming
+        </label>
+
+        <label>
+          <input type="checkbox" id="newAccountFootball">
+          Football
+        </label>
+
+        <button type="submit" id="createAccountButton">
+          Create Account
+        </button>
+
+        <p id="createAccountMessage" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <h3 style="margin-top:24px">Existing Accounts</h3>
+    <div id="accountsList">Loading accounts…</div>
   `;
+
+  $('accountsBack').addEventListener('click', () => {
+    accountsPage.hidden = true;
+    $('homeMenu').hidden = false;
+    $('headerHome').hidden = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  $('createAccountForm').addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const email = $('newAccountEmail').value.trim();
+    const password = $('newAccountPassword').value;
+    const role = $('newAccountRole').value;
+
+    const tools = [];
+
+    if ($('newAccountSwimming').checked) {
+      tools.push('swimming');
+    }
+
+    if ($('newAccountFootball').checked) {
+      tools.push('football');
+    }
+
+    const message = $('createAccountMessage');
+    const button = $('createAccountButton');
+
+    if (tools.length === 0) {
+      message.textContent = 'Please select at least one sport.';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Creating account…';
+
+    try {
+      await apiRequest(
+        'POST',
+        { email, password, role, tools },
+        ACCOUNTS_API
+      );
+
+      message.textContent = 'Account created successfully.';
+
+      $('createAccountForm').reset();
+      $('newAccountSwimming').checked = true;
+
+      await loadAccountList();
+
+    } catch (error) {
+      message.textContent = 'Unable to create account: ' + error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  await loadAccountList();
+}
+
+async function loadAccountList() {
+  const accountsList = $('accountsList');
 
   try {
     const result = await apiRequest('GET', undefined, ACCOUNTS_API);
@@ -408,47 +515,34 @@ async function loadAccounts() {
       throw new Error('Unexpected account data received.');
     }
 
-    accountsPage.innerHTML = `
-      <h2 style="margin-top:0">Manage Accounts</h2>
-      <p>View and manage access for swimming and football users.</p>
-      <button id="accountsBack" class="secondary" type="button">Back to home</button>
-      <div id="accountsList"></div>
-    `;
-
-    const accountsList = $('accountsList');
+    accountsList.innerHTML = '';
 
     if (result.accounts.length === 0) {
       accountsList.textContent = 'No accounts found.';
-    } else {
-      result.accounts.forEach(account => {
-        const item = document.createElement('div');
-        item.className = 'panel';
-        item.style.marginTop = '12px';
-
-        const heading = document.createElement('h3');
-        heading.textContent = account.email;
-
-        const details = document.createElement('p');
-        details.textContent =
-          'Role: ' + account.role +
-          ' | Sports: ' + (account.tools || []).join(', ');
-
-        item.append(heading, details);
-        accountsList.appendChild(item);
-      });
+      return;
     }
-  } catch (error) {
-    const message = document.createElement('p');
-    message.textContent = 'Unable to load accounts: ' + error.message;
-    accountsPage.appendChild(message);
-  }
 
-  $('accountsBack').addEventListener('click', () => {
-    accountsPage.hidden = true;
-    $('homeMenu').hidden = false;
-    $('headerHome').hidden = true;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+    result.accounts.forEach(account => {
+      const item = document.createElement('div');
+      item.className = 'panel';
+      item.style.marginTop = '12px';
+
+      const heading = document.createElement('h3');
+      heading.textContent = account.email;
+
+      const details = document.createElement('p');
+      details.textContent =
+        'Role: ' + account.role +
+        ' | Sports: ' + (account.tools || []).join(', ');
+
+      item.append(heading, details);
+      accountsList.appendChild(item);
+    });
+
+  } catch (error) {
+    accountsList.textContent =
+      'Unable to load accounts: ' + error.message;
+  }
 }
     
     function makeId(){return window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():'gala-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
