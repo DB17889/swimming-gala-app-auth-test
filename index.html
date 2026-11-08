@@ -747,7 +747,7 @@ $('cancelPasswordChange').addEventListener('click', async () => {
 });
 
 
-retryButton.addEventListener('click',requestData);document.querySelectorAll('[data-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.page;if(page==='Galas'){showPage('galas');renderGalas();}else if(page==='Enter Results'){showPage('results');refreshResultsGalaOptions(true);}else if(page==='Results History'){showPage('history');setHistoryCourse(historyCourse);}else if(page==='Manage Accounts'){showPage('accounts');}}));
+retryButton.addEventListener('click',requestData);document.querySelectorAll('[data-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.page;if(page==='Galas'){showPage('galas');renderGalas();}else if(page==='Enter Results'){showPage('results');refreshResultsGalaOptions(true);}else if(page==='Results History'){showPage('history');setHistoryCourse(historyCourse);}else if(page==='Manage Accounts'){showPage('accounts');loadAccounts();}}));
 function applyPermissions() {
   document.querySelectorAll('[data-requires-swimming]').forEach(button => {
     button.hidden = !currentUserTools.includes('swimming');
